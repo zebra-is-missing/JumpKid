@@ -8,9 +8,9 @@ public class UIManager : MonoBehaviour
     [Header("UI References")]
     public TextMeshProUGUI scoreText;
 
-    private int currentScore = 0;
-
-    [Header("Gán GameObject Popup vào đây")]
+    [Header("Gán UI Image hiển thị hình")]
+    public Image faceIdImage;
+    public Image popupCharacterImage;
     public GameObject popupLevelUp;
 
     void Awake()
@@ -23,14 +23,12 @@ public class UIManager : MonoBehaviour
         UpdateScoreDisplay();
     }
 
-    // Cộng điểm khi nhảy trúng bục
     public void AddScore(int amount = 1)
     {
         currentScore += amount;
         UpdateScoreDisplay();
     }
 
-    // Cập nhật text điểm số ở giữa màn hình
     private void UpdateScoreDisplay()
     {
         if (scoreText != null)
@@ -39,41 +37,54 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // Sự kiện khi bấm vào nút Face ID góc dưới trái
+    private void CheckAndUpdateLevel()
+    {
+        if (levels == null || levels.Count == 0) return;
+
+        int targetIndex = currentScore / stepsPerLevel;
+        targetIndex = Mathf.Clamp(targetIndex, 0, levels.Count - 1);
+
+        if (targetIndex != currentLevelIndex)
+        {
+            currentLevelIndex = targetIndex;
+            ApplyLevelSkin(levels[currentLevelIndex]);
+    }
+
+    private void ApplyLevelSkin(LevelSkin skin)
+    {
+        if (faceIdImage != null && skin.faceIdSprite != null)
+        {
+            faceIdImage.sprite = skin.faceIdSprite;
+        }
+
+        if (popupCharacterImage != null && skin.popupSprite != null)
+    {
+            popupCharacterImage.sprite = skin.popupSprite;
+        }
+
+        if (PlayerController.Instance != null)
+        {
+            PlayerController.Instance.UpdateSkin(skin.characterIdle, skin.characterJump);
+        }
+        }
+    }
+
     public void OnFaceIDClicked()
     {
-        Debug.Log("Face ID Button Clicked!");
-        // Bạn có thể thêm code mở popup thông tin/skin nhân vật ở đây
+        TogglePopup();
     }
 
-    // Hàm mở popup
     public void OpenPopup()
-    {
-        if (popupLevelUp != null)
         {
-            popupLevelUp.SetActive(true);
-            // Nếu muốn nhân vật tạm dừng nhảy trong lúc xem popup:
-            // Time.timeScale = 0f;
+        if (popupLevelUp != null) popupLevelUp.SetActive(true);
         }
     }
 
-    // Hàm đóng popup
-    public void ClosePopup()
-    {
-        if (popupLevelUp != null)
-        {
-            popupLevelUp.SetActive(false);
-            // Time.timeScale = 1f; // Trả lại thời gian bình thường nếu có tạm dừng
-        }
-    }
-
-    // Hàm chuyển đổi bật/tắt khi bấm nút FaceID
     public void TogglePopup()
     {
         if (popupLevelUp != null)
         {
-            bool isCurrentActive = popupLevelUp.activeSelf;
-            popupLevelUp.SetActive(!isCurrentActive);
+            popupLevelUp.SetActive(!popupLevelUp.activeSelf);
         }
     }
 }
