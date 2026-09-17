@@ -5,12 +5,17 @@ using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController Instance;
+
     [Header("Cấu hình Tích lực")]
     public float maxChargeTime = 1.2f;
     public float minJumpDistance = 1.5f;
     public float maxJumpDistance = 5.5f;
     public float jumpHeight = 1.8f;
     public float jumpDuration = 0.45f;
+
+    [Tooltip("Thời gian giữ tư thế đáp đất (giây) trước khi đứng về Idle")]
+    public float landDuration = 0.15f;
 
     [Header("Hiển thị & Sprite")]
     public UnityEngine.Transform visualTransform;
@@ -21,6 +26,9 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Ảnh nhân vật lúc đang bay trên không")]
     public Sprite jumpSprite;
 
+    [Tooltip("Ảnh nhân vật lúc vừa chạm bục (Đáp)")]
+    public Sprite landSprite;
+
     [Header("UI Game Over")]
     public GameObject gameOverPanel;
 
@@ -30,6 +38,11 @@ public class PlayerController : MonoBehaviour
     private bool isCharging = false;
     private float chargeTimer = 0f;
     private bool isJumping = false;
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {
@@ -48,6 +61,10 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.Instance != null && !UIManager.Instance.isPlaying)
+        {
+            return;
+        }
         // 1. BẮT ĐẦU NHẤN CHUỘT / PHÍM SPACE
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -55,9 +72,7 @@ public class PlayerController : MonoBehaviour
         }
         else if (Input.GetMouseButtonDown(0))
         {
-            // Nếu click trúng UI (nút FaceID, Pause, v.v.), bỏ qua hoàn toàn
             if (IsPointerOverUI()) return;
-
             StartCharging();
         }
 
@@ -68,7 +83,6 @@ public class PlayerController : MonoBehaviour
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            // Chỉ thực hiện nhảy nếu trước đó đã thực sự bắt đầu tích lực thành công
             if (isCharging)
             {
                 ReleaseAndJump();
@@ -87,15 +101,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Hàm kiểm tra con trỏ chuột hoặc ngón tay cảm ứng có chạm trúng UI không
     private bool IsPointerOverUI()
     {
         if (EventSystem.current == null) return false;
 
-        // Chuột trên PC / Editor
         if (EventSystem.current.IsPointerOverGameObject()) return true;
 
-        // Cảm ứng đa điểm trên màn hình điện thoại
         if (Input.touchCount > 0 && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
         {
             return true;
@@ -139,15 +150,33 @@ public class PlayerController : MonoBehaviour
         Vector3 startPos = transform.position;
         float timeElapsed = 0f;
 
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayJump();
+        }
+
+        // 1. Lúc bắt đầu phóng lên: Dùng JUMP sprite
         if (playerSpriteRenderer != null && jumpSprite != null)
         {
             playerSpriteRenderer.sprite = jumpSprite;
         }
 
+        bool switchedToLandSprite = false;
+
         while (timeElapsed < jumpDuration)
         {
             timeElapsed += Time.deltaTime;
             float progress = Mathf.Clamp01(timeElapsed / jumpDuration);
+
+            // 2. KHI ĐẠT ĐỈNH CỦA CÚ NHẢY (progress >= 0.5f): Chuyển sang LAND sprite
+            if (!switchedToLandSprite && progress >= 0.5f)
+            {
+                switchedToLandSprite = true;
+                if (playerSpriteRenderer != null && landSprite != null)
+                {
+                    playerSpriteRenderer.sprite = landSprite;
+                }
+            }
 
             Vector3 groundPos = Vector3.Lerp(startPos, targetPos, progress);
             float arc = 4f * jumpHeight * progress * (1f - progress);
@@ -177,6 +206,13 @@ public class PlayerController : MonoBehaviour
 
         if (isLandedInside)
         {
+            // 3. Vừa tiếp đất: Nếu muốn giữ dáng đáp một khoảnh khắc rất ngắn (landDuration) trước khi đứng thẳng
+            if (landDuration > 0f)
+            {
+                yield return new WaitForSeconds(landDuration);
+            }
+
+            // Chuyển về IDLE sprite khi đã đứng vững
             if (playerSpriteRenderer != null && idleSprite != null)
             {
                 playerSpriteRenderer.sprite = idleSprite;
@@ -195,7 +231,6 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // TRUYỀN targetPlatform VÀO ĐÂY:
             StartCoroutine(FallDownRoutine(targetPlatform));
         }
     }
@@ -248,14 +283,16 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
 
-        // Hiện màn hình Game Over khi kết thúc hiệu ứng rơi
-        if (gameOverPanel != null)
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowGameOver();
+        }
+        else if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
         }
     }
 
-    // Hàm gọi khi bấm nút Replay
     public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -265,5 +302,18 @@ public class PlayerController : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(transform.position, 0.08f);
+    }
+
+    // Nhận Sprite mới khi level thay đổi
+    public void UpdateSkin(Sprite newIdle, Sprite newJump, Sprite newLand)
+    {
+        if (newIdle != null) idleSprite = newIdle;
+        if (newJump != null) jumpSprite = newJump;
+        if (newLand != null) landSprite = newLand;
+
+        if (!isJumping && playerSpriteRenderer != null && idleSprite != null)
+        {
+            playerSpriteRenderer.sprite = idleSprite;
+        }
     }
 }

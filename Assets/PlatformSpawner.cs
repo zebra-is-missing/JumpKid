@@ -1,14 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Định nghĩa 1 nhóm platform (Theme)
-[System.Serializable]
-public class PlatformTheme
-{
-    public string themeName;       // Tên nhóm (vd: Bậc Đá, Bậc Kẹo...)
-    public Sprite[] sprites;       // Danh sách các sprite thuộc nhóm này (vd: 3 hình bục đá)
-}
-
 public class PlatformSpawner : MonoBehaviour
 {
     public static PlatformSpawner Instance;
@@ -17,13 +9,6 @@ public class PlatformSpawner : MonoBehaviour
     public GameObject platformPrefab;
     public Transform firstPlatform;
     public int initialPlatforms = 8;
-
-    [Header("Cấu hình Nhóm Platform (Themes)")]
-    public List<PlatformTheme> themes = new List<PlatformTheme>();
-
-    // Quản lý trạng thái xuất hiện theo nhóm
-    private int currentThemeIndex = -1;
-    private int currentSpriteInThemeIndex = 0;
 
     [Header("Góc nghiêng trục Isometric (Tỉ lệ X : Y)")]
     public Vector2 rightSlope = new Vector2(3.8f, 1.45f);
@@ -51,14 +36,23 @@ public class PlatformSpawner : MonoBehaviour
 
     void Start()
     {
-        // Khởi tạo nhóm đầu tiên
-        PickNewTheme();
-
         if (firstPlatform != null)
         {
             lastPlatformPosition = firstPlatform.position;
             basePlatformScale = firstPlatform.localScale;
             activePlatforms.Add(firstPlatform.gameObject);
+
+            // Gán sprite Level 1 cho bục đứng ban đầu và tính vào bộ đếm bục số 0
+            if (UIManager.Instance != null)
+            {
+                Sprite firstPlatSprite = UIManager.Instance.GetCurrentPlatformSprite();
+                SpriteRenderer sr = firstPlatform.GetComponentInChildren<SpriteRenderer>();
+                if (sr != null && firstPlatSprite != null)
+                {
+                    sr.sprite = firstPlatSprite;
+                }
+            }
+
             UpdatePlatformSorting(firstPlatform.gameObject);
         }
         else
@@ -73,50 +67,6 @@ public class PlatformSpawner : MonoBehaviour
         {
             SpawnNewPlatform();
         }
-    }
-
-    // Chọn một nhóm ngẫu nhiên (không trùng ngay với nhóm vừa xong)
-    private void PickNewTheme()
-    {
-        if (themes == null || themes.Count == 0) return;
-
-        if (themes.Count == 1)
-        {
-            currentThemeIndex = 0;
-        }
-        else
-        {
-            int newTheme;
-            do
-            {
-                newTheme = Random.Range(0, themes.Count);
-            } while (newTheme == currentThemeIndex);
-
-            currentThemeIndex = newTheme;
-        }
-
-        currentSpriteInThemeIndex = 0;
-    }
-
-    // Lấy sprite tiếp theo của nhóm hiện tại
-    private Sprite GetNextThemeSprite()
-    {
-        if (themes == null || themes.Count == 0 || currentThemeIndex < 0) return null;
-
-        PlatformTheme theme = themes[currentThemeIndex];
-        if (theme.sprites == null || theme.sprites.Length == 0) return null;
-
-        // Lấy sprite theo thứ tự trong nhóm
-        Sprite result = theme.sprites[currentSpriteInThemeIndex];
-        currentSpriteInThemeIndex++;
-
-        // Khi đã xuất hiện hết toàn bộ sprite của nhóm này -> chuyển sang ngẫu nhiên nhóm khác
-        if (currentSpriteInThemeIndex >= theme.sprites.Length)
-        {
-            PickNewTheme();
-        }
-
-        return result;
     }
 
     public Vector3 GetPlatformAxisDirection(int direction)
@@ -148,14 +98,19 @@ public class PlatformSpawner : MonoBehaviour
         GameObject newPlat = Instantiate(platformPrefab, newPos, Quaternion.identity);
         newPlat.transform.localScale = basePlatformScale;
 
-        // Thay đổi Sprite theo nhóm
-        Sprite nextSprite = GetNextThemeSprite();
-        if (nextSprite != null)
+        // Lấy Sprite bục từ UIManager theo Level hiện tại
+        Sprite platformSprite = null;
+        if (UIManager.Instance != null)
+        {
+            platformSprite = UIManager.Instance.GetCurrentPlatformSprite();
+        }
+
+        if (platformSprite != null)
         {
             SpriteRenderer sr = newPlat.GetComponentInChildren<SpriteRenderer>();
             if (sr != null)
             {
-                sr.sprite = nextSprite;
+                sr.sprite = platformSprite;
             }
         }
 
