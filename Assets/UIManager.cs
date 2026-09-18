@@ -3,10 +3,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
+    public PopUpManager popUpManager;
 
     // Biến static lưu lại trạng thái xuyên suốt quá trình load lại scene
     public static bool autoStartOnReload = false;
@@ -24,7 +26,7 @@ public class UIManager : MonoBehaviour
     public GameObject popupLevelUp;
 
     [Header("Cấu hình Level")]
-    public int stepsPerLevel = 5;
+    public int stepsPerLevel = 1;
     public List<LevelSkin> levels = new List<LevelSkin>();
 
     private int currentScore = 0;
@@ -143,6 +145,12 @@ public class UIManager : MonoBehaviour
 
         int targetIndex = currentScore / stepsPerLevel;
         targetIndex = Mathf.Clamp(targetIndex, 0, levels.Count - 1);
+        int popupIndex = currentScore % stepsPerLevel;
+        // Gọi popup
+        if(popupIndex == 0 && currentLevelIndex > 0)
+        {
+            popUpManager.ShowLevelUpPopUp(levels[currentLevelIndex - 1], levels[currentLevelIndex]);
+        }
 
         if (targetIndex != currentLevelIndex)
         {
@@ -151,11 +159,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void AnimateFaceID()
+    {
+        if(faceIdImage == null) return;
+        faceIdImage.transform.DOScale(1.2f, 0.2f).SetLoops(2, LoopType.Yoyo);
+    }
+
     private void ApplyLevelSkin(LevelSkin skin)
     {
         if (faceIdImage != null && skin.faceIdSprite != null)
         {
             faceIdImage.sprite = skin.faceIdSprite;
+            AnimateFaceID();
         }
 
         if (popupCharacterImage != null && skin.popupSprite != null)
@@ -188,6 +203,7 @@ public class UIManager : MonoBehaviour
     public void OnFaceIDClicked()
     {
         TogglePopup();
+        //popUpManager.ToggleLevelPopup();
     }
 
     public void OpenPopup()

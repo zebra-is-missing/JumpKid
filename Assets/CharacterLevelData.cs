@@ -7,9 +7,9 @@ public class LevelSkin
     public int level = 1;
 
     [Header("Sprite Nhân vật")]
-    public Sprite characterIdle;
-    public Sprite characterJump;
-    public Sprite characterLand;
+    public Sprite characterIdle;    // Char đứng
+    public Sprite characterJump;    // Char nhảy
+    public Sprite characterLand;    // Char đáp
 
     [Header("Sprite UI")]
     public Sprite faceIdSprite;       // Ảnh Face ID góc trái

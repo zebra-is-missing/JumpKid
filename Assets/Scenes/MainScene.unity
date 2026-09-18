@@ -131,6 +131,8 @@ GameObject:
   - component: {fileID: 37375387}
   - component: {fileID: 37375386}
   - component: {fileID: 37375385}
+  - component: {fileID: 37375390}
+  - component: {fileID: 37375389}
   m_Layer: 0
   m_Name: SoundManager
   m_TagString: Untagged
@@ -365,6 +367,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &37375389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37375384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98033de7ea1849946a083a0b2f3a3c4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopUpManager
+--- !u!114 &37375390
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37375384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98033de7ea1849946a083a0b2f3a3c4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopUpManager
 --- !u!1 &127877331
 GameObject:
   m_ObjectHideFlags: 0
@@ -980,6 +1006,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6701415723758406222, guid: e32695a450045e64f816d1c11b6f6081, type: 3}
   m_PrefabInstance: {fileID: 6237289671275603095}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &424263235
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 424263237}
+  - component: {fileID: 424263236}
+  m_Layer: 0
+  m_Name: PopUpManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &424263236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424263235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98033de7ea1849946a083a0b2f3a3c4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopUpManager
+--- !u!4 &424263237
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424263235}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 538.73364, y: 959.57477, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &427706070
 GameObject:
   m_ObjectHideFlags: 0
@@ -2461,13 +2531,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f86210de19c159646b51652d44aaf35c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
+  popUpManager: {fileID: 424263236}
   mainMenuPanel: {fileID: 1600082649}
   gameOverPanel: {fileID: 290246247}
   scoreText: {fileID: 278028972}
   faceIdImage: {fileID: 905368925}
   popupCharacterImage: {fileID: 1635047757}
   popupLevelUp: {fileID: 427706070}
-  stepsPerLevel: 4
+  stepsPerLevel: 1
   levels:
   - level: 1
     characterIdle: {fileID: 1902142967731307465, guid: 2cedc73e0f6babe40917e0832b27f20c, type: 3}
@@ -2514,7 +2585,7 @@ MonoBehaviour:
   - level: 6
     characterIdle: {fileID: 5852430077117590960, guid: 1492f2534956f5641ab12fc1db21a4eb, type: 3}
     characterJump: {fileID: -7273974525133311919, guid: e093f14d28529574a967a0d3ebf32b33, type: 3}
-    characterLand: {fileID: 0}
+    characterLand: {fileID: 2971540306318573179, guid: 29b2c30abf738644ea3b1294a458be15, type: 3}
     faceIdSprite: {fileID: 7943336958639247108, guid: 75dacfbca5e2b6849920bd07a39686b9, type: 3}
     popupSprite: {fileID: 7943336958639247108, guid: 9198d99637707a446a802c05137ec5ec, type: 3}
     platformSprites:
@@ -2523,7 +2594,7 @@ MonoBehaviour:
   - level: 7
     characterIdle: {fileID: 7280731213257467504, guid: 00bac9235ae229f428984d9b029a200b, type: 3}
     characterJump: {fileID: 6025226328794495833, guid: 7344c079e67318546a77693af7858656, type: 3}
-    characterLand: {fileID: 0}
+    characterLand: {fileID: -3122934584639210931, guid: 1c292776e475f224b8b793ad60a8ee6e, type: 3}
     faceIdSprite: {fileID: 3367185808159677734, guid: cade681c95c9e9640b588ea814c8541d, type: 3}
     popupSprite: {fileID: 3367185808159677734, guid: c0ae4846a038ca14bbe4dc6c0b747852, type: 3}
     platformSprites:
@@ -2532,7 +2603,7 @@ MonoBehaviour:
   - level: 8
     characterIdle: {fileID: 7280731213257467504, guid: 00bac9235ae229f428984d9b029a200b, type: 3}
     characterJump: {fileID: 6025226328794495833, guid: 7344c079e67318546a77693af7858656, type: 3}
-    characterLand: {fileID: 0}
+    characterLand: {fileID: -3122934584639210931, guid: 1c292776e475f224b8b793ad60a8ee6e, type: 3}
     faceIdSprite: {fileID: 9087257845790318010, guid: 43ca624a7cfe4f847ae00545076e32d5, type: 3}
     popupSprite: {fileID: 9087257845790318010, guid: f4ef3b53bfc18d142b6b8b1b1e3ea06c, type: 3}
     platformSprites:
@@ -2542,7 +2613,7 @@ MonoBehaviour:
   - level: 9
     characterIdle: {fileID: 7280731213257467504, guid: 00bac9235ae229f428984d9b029a200b, type: 3}
     characterJump: {fileID: 6025226328794495833, guid: 7344c079e67318546a77693af7858656, type: 3}
-    characterLand: {fileID: 0}
+    characterLand: {fileID: -3122934584639210931, guid: 1c292776e475f224b8b793ad60a8ee6e, type: 3}
     faceIdSprite: {fileID: -9184062049121175670, guid: 540fe364029cda94abc4b08f5d8ab83b, type: 3}
     popupSprite: {fileID: -9184062049121175670, guid: ffc30404c18593a438a39733a673e30d, type: 3}
     platformSprites:
@@ -3442,3 +3513,4 @@ SceneRoots:
   - {fileID: 1538867157}
   - {fileID: 1732583361}
   - {fileID: 37375388}
+  - {fileID: 424263237}
