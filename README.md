@@ -10,7 +10,7 @@
 3. Vấn đề khác:
 - Khi hiển thị PopUp, vẫn có thể click ra bên ngoài PopUp hoặc ấn Space để tắt chế độ PopUp kể cả khi chưa chạy xong.
 - Chưa biết vấn đề do đâu.
-## Devlopd #2 (20/09/2026)
+## Devlog #2 (20/09/2026)
 1. Thay đổi
 - Thêm file GameInputManager.cs, xử lý vấn đề chặn input mỗi lần hiển thị quá trình Level Up.
 - Điều chỉnh nhẹ hàm PlayerController, PopUpManager để đóng băng game tạm thời (màn hỉnh game lẫn bảng điều khiển) khi diễn ra quá trình Level Up.
