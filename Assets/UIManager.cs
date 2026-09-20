@@ -21,7 +21,8 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
 
     [Header("Gán UI Image hiển thị hình")]
-    public Image faceIdImage;
+    [SerializeField] private Image faceIdImage;
+    [SerializeField] private Image currentCharacterImage;
     public Image popupCharacterImage;
     public GameObject popupLevelUp;
 
@@ -147,9 +148,9 @@ public class UIManager : MonoBehaviour
         targetIndex = Mathf.Clamp(targetIndex, 0, levels.Count - 1);
         int popupIndex = currentScore % stepsPerLevel;
         // Gọi popup
-        if(popupIndex == 0 && currentLevelIndex > 0)
+        if(popupIndex == 0 && currentLevelIndex >= 0)
         {
-            popUpManager.ShowLevelUpPopUp(levels[currentLevelIndex - 1], levels[currentLevelIndex]);
+            popUpManager.ShowLevelUpPopUp(levels[currentLevelIndex], levels[currentLevelIndex + 1]);
         }
 
         if (targetIndex != currentLevelIndex)
@@ -167,12 +168,18 @@ public class UIManager : MonoBehaviour
 
     private void ApplyLevelSkin(LevelSkin skin)
     {
-        if (faceIdImage != null && skin.faceIdSprite != null)
+        if (faceIdImage != null /*&& skin.faceIdSprite != null*/)
         {
             faceIdImage.sprite = skin.faceIdSprite;
             AnimateFaceID();
         }
 
+        if(currentCharacterImage != null)
+        {
+            currentCharacterImage.sprite = skin.popupSprite;
+        }
+        PlayerController.Instance.UpdateSkin(skin.characterIdle, skin.characterJump, skin.characterLand);
+        /*
         if (popupCharacterImage != null && skin.popupSprite != null)
         {
             popupCharacterImage.sprite = skin.popupSprite;
@@ -182,6 +189,7 @@ public class UIManager : MonoBehaviour
         {
             PlayerController.Instance.UpdateSkin(skin.characterIdle, skin.characterJump, skin.characterLand);
         }
+        */
     }
 
     public Sprite GetCurrentPlatformSprite()

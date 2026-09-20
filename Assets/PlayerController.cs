@@ -65,6 +65,8 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
+        if(GameInputManager.Instance.IsInputLocked) return;
+
         // 1. BẮT ĐẦU NHẤN CHUỘT / PHÍM SPACE
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -146,6 +148,9 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator JumpRoutine(Vector3 targetPos, UnityEngine.Transform targetPlatform)
     {
+        // them code
+        if(GameInputManager.Instance.IsInputLocked) yield break;
+
         isJumping = true;
         Vector3 startPos = transform.position;
         float timeElapsed = 0f;
