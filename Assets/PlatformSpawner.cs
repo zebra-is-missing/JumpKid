@@ -42,7 +42,7 @@ public class PlatformSpawner : MonoBehaviour
             basePlatformScale = firstPlatform.localScale;
             activePlatforms.Add(firstPlatform.gameObject);
 
-            // Gán sprite Level 1 cho bục đứng ban đầu và tính vào bộ đếm bục số 0
+            // Gán sprite cho bục đứng đầu tiên
             if (UIManager.Instance != null)
             {
                 Sprite firstPlatSprite = UIManager.Instance.GetCurrentPlatformSprite();
@@ -76,11 +76,6 @@ public class PlatformSpawner : MonoBehaviour
         return dir.normalized;
     }
 
-    public int GetCurrentDirection()
-    {
-        return currentDirection;
-    }
-
     private void SpawnNewPlatform()
     {
         if (remainingStepsInDirection <= 0)
@@ -98,7 +93,7 @@ public class PlatformSpawner : MonoBehaviour
         GameObject newPlat = Instantiate(platformPrefab, newPos, Quaternion.identity);
         newPlat.transform.localScale = basePlatformScale;
 
-        // Lấy Sprite bục từ UIManager theo Level hiện tại
+        // Lấy Sprite theo level hiện tại
         Sprite platformSprite = null;
         if (UIManager.Instance != null)
         {
@@ -130,20 +125,25 @@ public class PlatformSpawner : MonoBehaviour
         }
     }
 
-    public Transform GetNextTargetPlatform()
+    // Lấy Transform bục kế tiếp mà không sinh thêm bục ngầm
+    public Transform PeekNextPlatform()
     {
-        if (activePlatforms.Count > 1 && activePlatforms[1] != null)
+        return (activePlatforms.Count > 1 && activePlatforms[1] != null) ? activePlatforms[1].transform : null;
+    }
+
+    // Hàm trả về vector hướng nhảy chuẩn xác từ vị trí nhân vật đến bục kế tiếp
+    public Vector3 GetJumpDirection(Vector3 currentPosition)
+    {
+        Transform nextPlat = PeekNextPlatform();
+        if (nextPlat != null)
         {
-            return activePlatforms[1].transform;
+            Vector3 dir = nextPlat.position - currentPosition;
+            dir.z = 0f;
+            return dir.normalized;
         }
 
-        if (activePlatforms.Count > 0)
-        {
-            SpawnNewPlatform();
-            if (activePlatforms.Count > 1) return activePlatforms[1].transform;
-        }
-
-        return null;
+        // Dự phòng: Nếu chưa có bục thì lấy theo hướng nghiêng hiện tại
+        return GetPlatformAxisDirection(currentDirection);
     }
 
     public void OnPlayerLanded()

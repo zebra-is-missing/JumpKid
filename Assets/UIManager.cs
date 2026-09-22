@@ -10,12 +10,11 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance;
     public PopUpManager popUpManager;
 
-    // Biến static lưu lại trạng thái xuyên suốt quá trình load lại scene
     public static bool autoStartOnReload = false;
 
     [Header("Panels")]
-    public GameObject mainMenuPanel; // Kéo MenuPanel vào đây
-    public GameObject gameOverPanel; // Kéo GameOverPanel vào đây
+    public GameObject mainMenuPanel;
+    public GameObject gameOverPanel;
 
     [Header("UI References")]
     public TextMeshProUGUI scoreText;
@@ -43,21 +42,18 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        // Ẩn panel Game Over lúc khởi động
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(false);
         }
 
-        // Kiểm tra xem có phải vừa bấm YES từ Game Over không
         if (autoStartOnReload)
         {
-            autoStartOnReload = false; // Reset cờ
-            StartGame(); // Bỏ qua menu, vào game ngay
+            autoStartOnReload = false;
+            StartGame();
         }
         else
         {
-            // Vào game lần đầu bình thường -> Hiện menu chính
             if (mainMenuPanel != null)
             {
                 mainMenuPanel.SetActive(true);
@@ -85,26 +81,20 @@ public class UIManager : MonoBehaviour
         isPlaying = true;
     }
 
-    // ==========================================
-    // XỬ LÝ NÚT YES VÀ NO
-    // ==========================================
-
-    // Gán hàm này vào nút YES (ReplayButton) -> Chơi lại ngay lập tức
     public void OnReplayYesClicked()
     {
         if (SoundManager.Instance != null) SoundManager.Instance.PlayButtonClick();
 
-        autoStartOnReload = true; // Bật cờ để scene mới biết cần vào game luôn
+        autoStartOnReload = true;
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.name);
     }
 
-    // Gán hàm này vào nút NO (NoReplayButton) -> Nhảy về Menu chính
     public void OnReplayNoClicked()
     {
         if (SoundManager.Instance != null) SoundManager.Instance.PlayButtonClick();
 
-        autoStartOnReload = false; // Đảm bảo cờ tắt để khi load xong sẽ dừng ở Main Menu
+        autoStartOnReload = false;
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.name);
     }
@@ -117,7 +107,6 @@ public class UIManager : MonoBehaviour
         {
             SoundManager.Instance.PlayGameOver();
         }
-
 
         if (gameOverPanel != null)
         {
@@ -144,52 +133,57 @@ public class UIManager : MonoBehaviour
     {
         if (levels == null || levels.Count == 0) return;
 
+        // Tính toán level tương ứng với điểm hiện tại
         int targetIndex = currentScore / stepsPerLevel;
         targetIndex = Mathf.Clamp(targetIndex, 0, levels.Count - 1);
-        int popupIndex = currentScore % stepsPerLevel;
-        // Gọi popup
-        if(popupIndex == 0 && currentLevelIndex >= 0)
-        {
-            popUpManager.ShowLevelUpPopUp(levels[currentLevelIndex], levels[currentLevelIndex + 1]);
-        }
 
-        if (targetIndex != currentLevelIndex)
+        // 1. Khi vừa vào game (Start), khởi tạo skin ban đầu mà không mở popup
+        if (currentLevelIndex == -1)
         {
             currentLevelIndex = targetIndex;
+            ApplyLevelSkin(levels[currentLevelIndex]);
+            return;
+        }
+
+        // 2. Chỉ kích hoạt Popup và áp dụng Skin mới khi ĐẠT ĐỦ ĐIỂM LÊN LEVEL MỚI
+        if (targetIndex > currentLevelIndex)
+        {
+            int oldIndex = currentLevelIndex;
+            currentLevelIndex = targetIndex;
+
+            // Gọi hiển thị popup thăng cấp chuyển từ skin cũ sang skin mới
+            if (popUpManager != null)
+            {
+                popUpManager.ShowLevelUpPopUp(levels[oldIndex], levels[currentLevelIndex]);
+            }
+
             ApplyLevelSkin(levels[currentLevelIndex]);
         }
     }
 
     private void AnimateFaceID()
     {
-        if(faceIdImage == null) return;
+        if (faceIdImage == null) return;
         faceIdImage.transform.DOScale(1.2f, 0.2f).SetLoops(2, LoopType.Yoyo);
     }
 
     private void ApplyLevelSkin(LevelSkin skin)
     {
-        if (faceIdImage != null /*&& skin.faceIdSprite != null*/)
+        if (faceIdImage != null)
         {
             faceIdImage.sprite = skin.faceIdSprite;
             AnimateFaceID();
         }
 
-        if(currentCharacterImage != null)
+        if (currentCharacterImage != null)
         {
             currentCharacterImage.sprite = skin.popupSprite;
-        }
-        PlayerController.Instance.UpdateSkin(skin.characterIdle, skin.characterJump, skin.characterLand);
-        /*
-        if (popupCharacterImage != null && skin.popupSprite != null)
-        {
-            popupCharacterImage.sprite = skin.popupSprite;
         }
 
         if (PlayerController.Instance != null)
         {
             PlayerController.Instance.UpdateSkin(skin.characterIdle, skin.characterJump, skin.characterLand);
         }
-        */
     }
 
     public Sprite GetCurrentPlatformSprite()
@@ -211,7 +205,6 @@ public class UIManager : MonoBehaviour
     public void OnFaceIDClicked()
     {
         TogglePopup();
-        //popUpManager.ToggleLevelPopup();
     }
 
     public void OpenPopup()
@@ -228,7 +221,15 @@ public class UIManager : MonoBehaviour
     {
         if (popupLevelUp != null)
         {
-            popupLevelUp.SetActive(!popupLevelUp.activeSelf);
+            bool nextState = !popupLevelUp.activeSelf;
+            popupLevelUp.SetActive(nextState);
+
+            CanvasGroup cg = popupLevelUp.GetComponent<CanvasGroup>();
+            if (cg != null)
+            {
+                cg.blocksRaycasts = nextState;
+                cg.interactable = nextState;
+            }
         }
     }
 }

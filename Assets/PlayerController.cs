@@ -1,324 +1,289 @@
-using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance;
 
     [Header("Cấu hình Tích lực")]
-    public float maxChargeTime = 1.2f;
+    public float maxChargeTime = 1.5f;
     public float minJumpDistance = 1.5f;
-    public float maxJumpDistance = 5.5f;
+    public float maxJumpDistance = 7.5f;
     public float jumpHeight = 1.8f;
-    public float jumpDuration = 0.45f;
-
-    [Tooltip("Thời gian giữ tư thế đáp đất (giây) trước khi đứng về Idle")]
-    public float landDuration = 0.15f;
+    public float jumpDuration = 0.7f;
+    public float landDuration = 0.0f;
 
     [Header("Hiển thị & Sprite")]
-    public UnityEngine.Transform visualTransform;
-
-    [Tooltip("Ảnh nhân vật lúc đứng im")]
+    public Transform visualTransform;
     public Sprite idleSprite;
-
-    [Tooltip("Ảnh nhân vật lúc đang bay trên không")]
     public Sprite jumpSprite;
-
-    [Tooltip("Ảnh nhân vật lúc vừa chạm bục (Đáp)")]
     public Sprite landSprite;
 
     [Header("UI Game Over")]
     public GameObject gameOverPanel;
 
-    private SpriteRenderer playerSpriteRenderer;
-    private Vector3 originalScale;
+    [Header("Bán kính đáp an toàn")]
+    public float landingTolerance = 1.2f;
 
+    private SpriteRenderer spriteRenderer;
     private bool isCharging = false;
-    private float chargeTimer = 0f;
     private bool isJumping = false;
+    private bool isFalling = false; // Cờ kiểm tra trạng thái rơi
+    private float chargeTimer = 0f;
+    private Vector3 jumpDirection = Vector3.right;
+    private Transform currentTargetPlatform;
 
     void Awake()
     {
         Instance = this;
+        if (visualTransform == null) visualTransform = transform;
+        spriteRenderer = visualTransform.GetComponent<SpriteRenderer>();
     }
 
     void Start()
     {
-        if (visualTransform == null) visualTransform = transform;
-        originalScale = visualTransform.localScale;
-        playerSpriteRenderer = visualTransform.GetComponentInChildren<SpriteRenderer>();
-
-        if (playerSpriteRenderer != null && idleSprite != null)
-        {
-            playerSpriteRenderer.sprite = idleSprite;
-        }
-
-        UpdateSortingOrder();
-        UpdateFacingDirection();
+        SetSprite(idleSprite);
+        AlignWithNextPlatform();
     }
 
     void Update()
     {
-        if (UIManager.Instance != null && !UIManager.Instance.isPlaying)
-        {
-            return;
-        }
-        if(GameInputManager.Instance.IsInputLocked) return;
+        if (UIManager.Instance != null && !UIManager.Instance.isPlaying) return;
+        if (isJumping) return;
 
-        // 1. BẮT ĐẦU NHẤN CHUỘT / PHÍM SPACE
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Bắt đầu bấm giữ: Kiểm tra nếu KHÔNG chạm vào UI thì mới tích lực
+        if (Input.GetMouseButtonDown(0))
         {
-            StartCharging();
-        }
-        else if (Input.GetMouseButtonDown(0))
-        {
-            if (IsPointerOverUI()) return;
-            StartCharging();
-        }
-
-        // 2. NHẢ CHUỘT / PHÍM SPACE
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            ReleaseAndJump();
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            if (isCharging)
+            if (!IsPointerOverUI())
             {
-                ReleaseAndJump();
+                StartCharging();
             }
         }
 
-        // 3. HIỆU ỨNG NÉN NHÂN VẬT KHI ĐANG TÍCH LỰC
+        // Đang gồng (vẫn tiếp tục đếm timer bình thường kể cả khi ngón tay di lệch)
         if (isCharging)
         {
             chargeTimer += Time.deltaTime;
-            float chargeRatio = Mathf.Clamp01(chargeTimer / maxChargeTime);
+            chargeTimer = Mathf.Min(chargeTimer, maxChargeTime);
 
-            float squashY = Mathf.Lerp(originalScale.y, originalScale.y * 0.65f, chargeRatio);
-            float stretchX = Mathf.Lerp(originalScale.x, originalScale.x * 1.2f, chargeRatio);
-            visualTransform.localScale = new Vector3(stretchX, squashY, originalScale.z);
+            float squashRatio = Mathf.Clamp01(chargeTimer / maxChargeTime);
+            float scaleY = Mathf.Lerp(1.0f, 0.7f, squashRatio);
+            float scaleX = Mathf.Lerp(1.0f, 1.25f, squashRatio);
+            visualTransform.localScale = new Vector3(scaleX, scaleY, 1f);
+        }
+
+        // Nhả tay ra thì thực hiện nhảy nếu trước đó đã bắt đầu gồng
+        if (Input.GetMouseButtonUp(0) && isCharging)
+        {
+            ExecuteJump();
         }
     }
 
+    // Hàm phụ trợ kiểm tra con trỏ trên UI an toàn cho cả PC và Mobile
     private bool IsPointerOverUI()
     {
         if (EventSystem.current == null) return false;
 
+        // Kiểm tra chuột PC
         if (EventSystem.current.IsPointerOverGameObject()) return true;
 
-        if (Input.touchCount > 0 && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+        // Kiểm tra cảm ứng Mobile
+        if (Input.touchCount > 0)
         {
-            return true;
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(i).fingerId))
+                {
+                    return true;
+                }
+            }
         }
 
         return false;
     }
 
-    public void StartCharging()
+    private void StartCharging()
     {
-        if (isJumping) return;
         isCharging = true;
         chargeTimer = 0f;
+        AlignWithNextPlatform();
     }
 
-    public void ReleaseAndJump()
+    private void AlignWithNextPlatform()
     {
-        if (!isCharging || isJumping) return;
+        if (PlatformSpawner.Instance == null) return;
 
+        currentTargetPlatform = PlatformSpawner.Instance.PeekNextPlatform();
+        if (currentTargetPlatform != null)
+        {
+            Vector3 diff = currentTargetPlatform.position - transform.position;
+            diff.z = 0f;
+            jumpDirection = diff.normalized;
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.flipX = (diff.x < 0);
+            }
+        }
+    }
+
+    private void ExecuteJump()
+    {
         isCharging = false;
-        visualTransform.localScale = originalScale;
+        isJumping = true;
+        isFalling = false;
+
+        visualTransform.localScale = Vector3.one;
 
         float chargeRatio = Mathf.Clamp01(chargeTimer / maxChargeTime);
-        float actualDistance = Mathf.Lerp(minJumpDistance, maxJumpDistance, chargeRatio);
+        float jumpDistance = Mathf.Lerp(minJumpDistance, maxJumpDistance, chargeRatio);
 
-        UnityEngine.Transform nextTarget = PlatformSpawner.Instance != null ? PlatformSpawner.Instance.GetNextTargetPlatform() : null;
-        if (nextTarget == null) return;
-
-        int dir = (nextTarget.position.x >= transform.position.x) ? 1 : -1;
-        Vector3 moveDirection = PlatformSpawner.Instance.GetPlatformAxisDirection(dir);
-
-        Vector3 landingPos = transform.position + moveDirection * actualDistance;
-        landingPos.z = 0f;
-
-        StartCoroutine(JumpRoutine(landingPos, nextTarget));
-    }
-
-    private IEnumerator JumpRoutine(Vector3 targetPos, UnityEngine.Transform targetPlatform)
-    {
-        // them code
-        if(GameInputManager.Instance.IsInputLocked) yield break;
-
-        isJumping = true;
         Vector3 startPos = transform.position;
-        float timeElapsed = 0f;
+        Vector3 targetPos = startPos + jumpDirection * jumpDistance;
+        targetPos.z = 0f;
+
+        SetSprite(jumpSprite);
 
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlayJump();
         }
 
-        // 1. Lúc bắt đầu phóng lên: Dùng JUMP sprite
-        if (playerSpriteRenderer != null && jumpSprite != null)
+        transform.DOJump(targetPos, jumpHeight, 1, jumpDuration)
+            .SetEase(Ease.Linear)
+            .OnComplete(() =>
+            {
+                OnJumpFinished(targetPos);
+            });
+    }
+
+    private void OnJumpFinished(Vector3 landedPos)
+    {
+        SetSprite(landSprite != null ? landSprite : idleSprite);
+
+        bool isSuccess = false;
+        if (currentTargetPlatform != null)
         {
-            playerSpriteRenderer.sprite = jumpSprite;
+            float distanceToCenter = Vector2.Distance(
+                new Vector2(landedPos.x, landedPos.y),
+                new Vector2(currentTargetPlatform.position.x, currentTargetPlatform.position.y)
+            );
+
+            if (distanceToCenter <= landingTolerance)
+            {
+                isSuccess = true;
+            }
         }
 
-        bool switchedToLandSprite = false;
-
-        while (timeElapsed < jumpDuration)
+        if (isSuccess)
         {
-            timeElapsed += Time.deltaTime;
-            float progress = Mathf.Clamp01(timeElapsed / jumpDuration);
-
-            // 2. KHI ĐẠT ĐỈNH CỦA CÚ NHẢY (progress >= 0.5f): Chuyển sang LAND sprite
-            if (!switchedToLandSprite && progress >= 0.5f)
+            if (landDuration > 0)
             {
-                switchedToLandSprite = true;
-                if (playerSpriteRenderer != null && landSprite != null)
+                DOVirtual.DelayedCall(landDuration, () =>
                 {
-                    playerSpriteRenderer.sprite = landSprite;
-                }
-            }
-
-            Vector3 groundPos = Vector3.Lerp(startPos, targetPos, progress);
-            float arc = 4f * jumpHeight * progress * (1f - progress);
-
-            transform.position = new Vector3(groundPos.x, groundPos.y + arc, 0f);
-            UpdateSortingOrder();
-            yield return null;
-        }
-
-        transform.position = targetPos;
-        UpdateSortingOrder();
-
-        PolygonCollider2D platCollider = targetPlatform.GetComponentInChildren<PolygonCollider2D>();
-        bool isLandedInside = false;
-
-        if (platCollider != null)
-        {
-            isLandedInside = platCollider.OverlapPoint(transform.position);
-        }
-        else
-        {
-            Vector2 offset = transform.position - targetPlatform.position;
-            float rx = targetPlatform.localScale.x * 0.85f;
-            float ry = targetPlatform.localScale.y * 0.42f;
-            isLandedInside = (Mathf.Pow(offset.x / rx, 2) + Mathf.Pow(offset.y / ry, 2)) <= 1.0f;
-        }
-
-        if (isLandedInside)
-        {
-            // 3. Vừa tiếp đất: Nếu muốn giữ dáng đáp một khoảnh khắc rất ngắn (landDuration) trước khi đứng thẳng
-            if (landDuration > 0f)
-            {
-                yield return new WaitForSeconds(landDuration);
-            }
-
-            // Chuyển về IDLE sprite khi đã đứng vững
-            if (playerSpriteRenderer != null && idleSprite != null)
-            {
-                playerSpriteRenderer.sprite = idleSprite;
-            }
-
-            isJumping = false;
-            UpdateSortingOrder();
-
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.AddScore(1);
-            }
-
-            PlatformSpawner.Instance.OnPlayerLanded();
-            UpdateFacingDirection();
-        }
-        else
-        {
-            StartCoroutine(FallDownRoutine(targetPlatform));
-        }
-    }
-
-    private void UpdateFacingDirection()
-    {
-        UnityEngine.Transform nextTarget = PlatformSpawner.Instance != null ? PlatformSpawner.Instance.GetNextTargetPlatform() : null;
-        if (nextTarget != null && playerSpriteRenderer != null)
-        {
-            playerSpriteRenderer.flipX = nextTarget.position.x < transform.position.x;
-        }
-    }
-
-    private void UpdateSortingOrder()
-    {
-        if (playerSpriteRenderer != null)
-        {
-            playerSpriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 10) + 10;
-        }
-    }
-
-    private IEnumerator FallDownRoutine(UnityEngine.Transform targetPlatform)
-    {
-        isJumping = true;
-
-        if (targetPlatform != null && playerSpriteRenderer != null)
-        {
-            SpriteRenderer platSr = targetPlatform.GetComponentInChildren<SpriteRenderer>();
-            int platSorting = platSr != null ? platSr.sortingOrder : Mathf.RoundToInt(-targetPlatform.position.y * 10);
-
-            if (transform.position.y > targetPlatform.position.y)
-            {
-                playerSpriteRenderer.sortingOrder = platSorting - 5;
+                    CompleteLanding();
+                });
             }
             else
             {
-                playerSpriteRenderer.sortingOrder = platSorting + 5;
+                CompleteLanding();
             }
         }
-
-        float fallDuration = 0.35f;
-        float elapsed = 0f;
-        Vector3 startPos = transform.position;
-        Vector3 fallPos = startPos + Vector3.down * 0.9f;
-
-        while (elapsed < fallDuration)
+        else
         {
-            elapsed += Time.deltaTime;
-            transform.position = Vector3.Lerp(startPos, fallPos, elapsed / fallDuration);
-            yield return null;
+            TriggerFallAndGameOver();
         }
+    }
+
+    private void CompleteLanding()
+    {
+        SetSprite(idleSprite);
+        isJumping = false;
+        isFalling = false;
 
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowGameOver();
+            UIManager.Instance.AddScore(1);
         }
-        else if (gameOverPanel != null)
+
+        if (PlatformSpawner.Instance != null)
         {
-            gameOverPanel.SetActive(true);
+            PlatformSpawner.Instance.OnPlayerLanded();
         }
+
+        AlignWithNextPlatform();
     }
 
-    public void RestartGame()
+    private void TriggerFallAndGameOver()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        isFalling = true; // Bật cờ trạng thái rơi trượt
+
+        // Đưa Sorting Order của nhân vật chìm hẳn ra sau bục
+        if (spriteRenderer != null)
+        {
+            if (currentTargetPlatform != null)
+            {
+                SpriteRenderer platSr = currentTargetPlatform.GetComponentInChildren<SpriteRenderer>();
+                if (platSr != null)
+                {
+                    spriteRenderer.sortingOrder = platSr.sortingOrder - 10;
+                }
+                else
+                {
+                    spriteRenderer.sortingOrder = Mathf.RoundToInt(-currentTargetPlatform.position.y * 10) - 10;
+                }
+            }
+            else
+            {
+                spriteRenderer.sortingOrder -= 50;
+            }
+        }
+
+        transform.DOMoveY(transform.position.y - 4f, 0.5f).SetEase(Ease.InQuad).OnComplete(() =>
+        {
+            isJumping = false;
+
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowGameOver();
+            }
+            else if (gameOverPanel != null)
+            {
+                gameOverPanel.SetActive(true);
+            }
+        });
     }
 
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(transform.position, 0.08f);
-    }
-
-    // Nhận Sprite mới khi level thay đổi
     public void UpdateSkin(Sprite newIdle, Sprite newJump, Sprite newLand)
     {
-        if (newIdle != null) idleSprite = newIdle;
-        if (newJump != null) jumpSprite = newJump;
-        if (newLand != null) landSprite = newLand;
+        idleSprite = newIdle;
+        jumpSprite = newJump;
+        landSprite = newLand;
 
-        if (!isJumping && playerSpriteRenderer != null && idleSprite != null)
+        if (!isJumping)
         {
-            playerSpriteRenderer.sprite = idleSprite;
+            SetSprite(idleSprite);
+        }
+    }
+
+    private void SetSprite(Sprite sprite)
+    {
+        if (spriteRenderer != null && sprite != null)
+        {
+            spriteRenderer.sprite = sprite;
+        }
+    }
+
+    void LateUpdate()
+    {
+        // Khi rơi hụt bục thì giữ nguyên layer chìm phía sau
+        if (isFalling) return;
+
+        if (spriteRenderer != null)
+        {
+            // Cộng thêm +15 để chân nhân vật đứng trên mặt bục luôn nổi đè lên trên bục đó
+            spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 10) + 15;
         }
     }
 }
