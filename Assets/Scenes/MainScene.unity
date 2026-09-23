@@ -2420,7 +2420,7 @@ MonoBehaviour:
   currentCharacterImage: {fileID: 0}
   popupCharacterImage: {fileID: 1635047757}
   popupLevelUp: {fileID: 427706070}
-  stepsPerLevel: 1
+  stepsPerLevel: 20
   levels:
   - level: 1
     characterIdle: {fileID: 1902142967731307465, guid: 2cedc73e0f6babe40917e0832b27f20c, type: 3}

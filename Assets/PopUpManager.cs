@@ -14,13 +14,29 @@ public class PopUpManager : MonoBehaviour
     private CanvasGroup popupCanvasGroup;
     private RectTransform popupRect;
     private Vector2 originalPos;
-    /*
+    
     private void AnimationFadeOn()
     {
+        // Reset trạng thái ban đầu
         popupRect.anchoredPosition = originalPos + new Vector2(0, offsetY);
-        popupCanvasGroup.alpha = 0;
+        popupCanvasGroup.alpha = 0f;
+
+        Sequence seq = DOTween.Sequence();
+
+        seq.Join(popupRect.DOAnchorPos(originalPos, time).SetEase(Ease.OutBack));
+        seq.Join(popupCanvasGroup.DOFade(1f, time));
+        seq.SetUpdate(true); // vẫn chạy khi Time.timeScale = 0
     }
-    */
+    
+    private IEnumerator AnimationFadeOff()
+    {
+        Sequence seq = DOTween.Sequence();
+
+        seq.Join(popupRect.DOAnchorPos(originalPos + new Vector2(0, offsetY), time));
+        seq.Join(popupCanvasGroup.DOFade(0f, time));
+        seq.SetUpdate(true);
+        yield return seq.WaitForCompletion();
+    }
 
     public void Start()
     {
@@ -58,18 +74,23 @@ public class PopUpManager : MonoBehaviour
         uiManager.popupCharacterImage.sprite = oldSkin.popupSprite;
         uiManager.popupLevelUp.SetActive(true);
 
+        AnimationFadeOn();
+
         // Chờ tầm 0.5 giây
         yield return new WaitForSecondsRealtime(0.5f);
 
         // Chuyển skin
-        Debug.Log("ApplyLevelSkin set NEW");
         uiManager.popupCharacterImage.sprite = newSkin.popupSprite;
 
-        // Thêm hiệu ứng, chưa thêm đâu, cẩn thận
+        // Thêm hiệu ứng nảy khi level up
+        uiManager.popupCharacterImage.transform.localScale = Vector3.one;
+        uiManager.popupCharacterImage.transform.DOPunchScale(Vector3.one * 0.1f, 0.5f, 8, 0.8f).SetUpdate(true);
+        // DOPucnhScale(độ mạnh, thời gian, rung, đàn hồi)
         yield return new WaitForSecondsRealtime(0.5f);
 
         // Chờ người chơi bấm đóng popup
         yield return new WaitForSecondsRealtime(2f);
+        yield return AnimationFadeOff();
         uiManager.popupLevelUp.SetActive(false);
 
         Time.timeScale = 1f;
