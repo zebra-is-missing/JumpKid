@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 203b98adf05d2d74ba16cdf144d3f897
+guid: da87754478bb44e4b84f1c212179501c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8635755764574440414
-    second: Back pop up_0
+      213: -1183681620893836794
+    second: Sample_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,17 +96,43 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Back pop up_0
+      name: Sample_0
       rect:
         serializedVersion: 2
-        x: 124
-        y: 473
-        width: 832
-        height: 1182
+        x: 5
+        y: 18
+        width: 1054
+        height: 1028
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: edbcd7a1d1e58d770800000000000000
-      internalID: 8635755764574440414
+      spriteID: 60ad67356d7b29fe0800000000000000
+      internalID: -1183681620893836794
       vertices: []
       indices: 
       edges: []
@@ -135,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Back pop up_0: 8635755764574440414
+      Sample_0: -1183681620893836794
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,11 +1,14 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class GameInputManager : MonoBehaviour
 {
     public static GameInputManager Instance { get; private set; }
 
     public bool IsInputLocked { get; private set; }
+
+    private bool wasPressedLastFrame = false;
 
     private void Awake()
     {
@@ -18,50 +21,104 @@ public class GameInputManager : MonoBehaviour
         Instance = this;
     }
 
+    private void LateUpdate()
+    {
+        wasPressedLastFrame = IsCurrentlyPressed();
+    }
+
     public void LockInput()
     {
         IsInputLocked = true;
+        wasPressedLastFrame = false;
     }
 
     public void UnlockInput()
     {
         IsInputLocked = false;
-        Input.ResetInputAxes();
+        wasPressedLastFrame = false;
     }
 
+    // Bắt đầu bấm xuống
     public bool GetJumpPressDown()
     {
         if (IsInputLocked) return false;
-        return Input.GetMouseButtonDown(0) && !IsPointerOverUI();
+
+        bool isPressed = IsCurrentlyPressed();
+        if (isPressed && !wasPressedLastFrame)
+        {
+            if (IsPointerOverUI()) return false;
+            return true;
+        }
+
+        return false;
     }
 
     // Đang giữ tay
     public bool GetJumpPressHeld()
     {
         if (IsInputLocked) return false;
-        return Input.GetMouseButton(0);
+        return IsCurrentlyPressed();
     }
 
     // Nhả tay ra
     public bool GetJumpPressUp()
     {
         if (IsInputLocked) return false;
-        return Input.GetMouseButtonUp(0);
+
+        bool isPressed = IsCurrentlyPressed();
+        return !isPressed && wasPressedLastFrame;
+    }
+
+    // Kiểm tra trạng thái chạm màn hình hoặc bấm chuột / phím Space
+    private bool IsCurrentlyPressed()
+    {
+        // 1. Chạm màn hình cảm ứng Android
+        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
+        {
+            return true;
+        }
+
+        // 2. Click chuột trái (cho Editor / PC)
+        if (Mouse.current != null && Mouse.current.leftButton.isPressed)
+        {
+            return true;
+        }
+
+        // 3. Phím Space
+        if (Keyboard.current != null && Keyboard.current.spaceKey.isPressed)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public bool IsPointerOverUI()
     {
         if (EventSystem.current == null) return false;
-        if (EventSystem.current.IsPointerOverGameObject()) return true;
 
-        if (Input.touchCount > 0)
+        // Chuột trên Editor / PC
+        if (Mouse.current != null && EventSystem.current.IsPointerOverGameObject())
         {
-            for (int i = 0; i < Input.touchCount; i++)
+            return true;
+        }
+
+        // Cảm ứng trên điện thoại Android
+        if (Touchscreen.current != null)
+        {
+            foreach (var touch in Touchscreen.current.touches)
             {
-                if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(i).fingerId))
-                    return true;
+                if (touch.isInProgress)
+                {
+                    int fingerId = touch.touchId.ReadValue();
+                    if (EventSystem.current.IsPointerOverGameObject(fingerId))
+                    {
+                        return true;
+                    }
+                }
             }
         }
+
         return false;
     }
 }

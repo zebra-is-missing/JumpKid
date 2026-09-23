@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 2f0a43fc52185d84fa5d8899fa2f4e1f
+guid: 203b98adf05d2d74ba16cdf144d3f897
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3630126167540245030
-    second: Play_0347_0
+      213: 8635755764574440414
+    second: Back pop up_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,17 +96,43 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Play_0347_0
+      name: Back pop up_0
       rect:
         serializedVersion: 2
-        x: 228
-        y: 99
-        width: 1704
-        height: 882
+        x: 124
+        y: 473
+        width: 832
+        height: 1182
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6222612248cc06230800000000000000
-      internalID: 3630126167540245030
+      spriteID: edbcd7a1d1e58d770800000000000000
+      internalID: 8635755764574440414
       vertices: []
       indices: 
       edges: []
@@ -135,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Play_0347_0: 3630126167540245030
+      Back pop up_0: 8635755764574440414
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
