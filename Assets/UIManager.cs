@@ -47,6 +47,11 @@ public class UIManager : MonoBehaviour
             gameOverPanel.SetActive(false);
         }
 
+        if (popupLevelUp != null)
+        {
+            popupLevelUp.SetActive(false);
+        }
+
         if (autoStartOnReload)
         {
             autoStartOnReload = false;
