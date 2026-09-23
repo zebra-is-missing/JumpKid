@@ -93,6 +93,9 @@ public class PopUpManager : MonoBehaviour
         yield return AnimationFadeOff();
         uiManager.popupLevelUp.SetActive(false);
 
+        popupCanvasGroup.alpha = 1f;
+        popupRect.anchoredPosition = originalPos;
+
         Time.timeScale = 1f;
         gameInputManager.UnlockInput();
     }
