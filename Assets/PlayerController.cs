@@ -1,6 +1,5 @@
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour
 {
@@ -52,16 +51,28 @@ public class PlayerController : MonoBehaviour
         if (UIManager.Instance != null && !UIManager.Instance.isPlaying) return;
         if (isJumping) return;
 
-        // Bắt đầu bấm giữ: Kiểm tra nếu KHÔNG chạm vào UI thì mới tích lực
-        if (Input.GetMouseButtonDown(0))
+        var input = GameInputManager.Instance;
+        if (input == null) return;
+
+        // 1. Nếu bị khóa đột ngột (ví dụ hiện popup khi đang gồng tay) -> Hủy gồng
+        if (input.IsInputLocked)
         {
-            if (!IsPointerOverUI())
+            if (isCharging)
             {
-                StartCharging();
+                isCharging = false;
+                chargeTimer = 0f;
+                visualTransform.localScale = Vector3.one;
             }
+            return;
         }
 
-        // Đang gồng (vẫn tiếp tục đếm timer bình thường kể cả khi ngón tay di lệch)
+        // 2. Bắt đầu gồng
+        if (input.GetJumpPressDown())
+        {
+            StartCharging();
+        }
+
+        // 3. Đang gồng
         if (isCharging)
         {
             chargeTimer += Time.deltaTime;
@@ -73,34 +84,11 @@ public class PlayerController : MonoBehaviour
             visualTransform.localScale = new Vector3(scaleX, scaleY, 1f);
         }
 
-        // Nhả tay ra thì thực hiện nhảy nếu trước đó đã bắt đầu gồng
-        if (Input.GetMouseButtonUp(0) && isCharging)
+        // 4. Nhả tay -> Nhảy
+        if (input.GetJumpPressUp() && isCharging)
         {
             ExecuteJump();
         }
-    }
-
-    // Hàm phụ trợ kiểm tra con trỏ trên UI an toàn cho cả PC và Mobile
-    private bool IsPointerOverUI()
-    {
-        if (EventSystem.current == null) return false;
-
-        // Kiểm tra chuột PC
-        if (EventSystem.current.IsPointerOverGameObject()) return true;
-
-        // Kiểm tra cảm ứng Mobile
-        if (Input.touchCount > 0)
-        {
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(i).fingerId))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     private void StartCharging()

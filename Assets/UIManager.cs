@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Gán UI Image hiển thị hình")]
     [SerializeField] private Image faceIdImage;
+    [SerializeField] private Button faceIdButton;
     [SerializeField] private Image currentCharacterImage;
     public Image popupCharacterImage;
     public GameObject popupLevelUp;
@@ -206,22 +207,6 @@ public class UIManager : MonoBehaviour
 
         return skin.platformSprites[spriteIndexInLevel];
     }
-
-    public void OnFaceIDClicked()
-    {
-        TogglePopup();
-    }
-
-    public void OpenPopup()
-    {
-        if (popupLevelUp != null) popupLevelUp.SetActive(true);
-    }
-
-    public void ClosePopup()
-    {
-        if (popupLevelUp != null) popupLevelUp.SetActive(false);
-    }
-
     public void TogglePopup()
     {
         if (popupLevelUp != null)

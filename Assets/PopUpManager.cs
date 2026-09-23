@@ -10,6 +10,7 @@ public class PopUpManager : MonoBehaviour
     [Header("Animation")]
     [SerializeField] private float time = 0.5f;
     [SerializeField] private float offsetY = -200f;
+    [SerializeField] private GameObject inputBlocker;
 
     private CanvasGroup popupCanvasGroup;
     private RectTransform popupRect;
@@ -50,6 +51,11 @@ public class PopUpManager : MonoBehaviour
             popupCanvasGroup = uiManager.popupLevelUp.AddComponent<CanvasGroup>();
         }
         originalPos = popupRect.anchoredPosition;
+
+        if (inputBlocker != null)
+        {
+            inputBlocker.SetActive(false);
+        }
     }
 
     public void ShowLevelUpPopUp(LevelSkin oldSkin, LevelSkin newSkin)
@@ -59,12 +65,15 @@ public class PopUpManager : MonoBehaviour
 
     private IEnumerator PlayLevelUpSequence(LevelSkin oldSkin, LevelSkin newSkin)
     {
-        if(uiManager == null)
-        {
-            yield break;
-        }
 
-        if(uiManager.popupLevelUp == null || oldSkin == null || newSkin == null) yield break;
+        if (uiManager == null || uiManager.popupLevelUp == null || oldSkin == null || newSkin == null)
+            yield break;
+
+        // 1. Bật Blocker ngay lập tức và khóa input
+        if (inputBlocker != null)
+        {
+            inputBlocker.SetActive(true);
+        }
 
         // Đóng băng game
         gameInputManager.LockInput();
@@ -97,6 +106,16 @@ public class PopUpManager : MonoBehaviour
         popupRect.anchoredPosition = originalPos;
 
         Time.timeScale = 1f;
-        gameInputManager.UnlockInput();
+        yield return null;
+
+        if (inputBlocker != null)
+        {
+            inputBlocker.SetActive(false);
+        }
+
+        if (gameInputManager != null)
+        {
+            gameInputManager.UnlockInput();
+        }
     }
 }
