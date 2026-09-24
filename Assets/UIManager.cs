@@ -39,6 +39,8 @@ public class UIManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        QualitySettings.vSyncCount = 0; // Tắt VSync để nhận lệnh bên dưới
+        Application.targetFrameRate = 60; // Khóa mượt ở 60 FPS
     }
 
     void Start()

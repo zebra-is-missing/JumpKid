@@ -14,7 +14,10 @@ public class LevelSkin
     [Header("Sprite UI")]
     public Sprite faceIdSprite;       // Ảnh Face ID góc trái
     public Sprite popupSprite;        // Ảnh toàn thân hiển thị trong Popup
-
+    [Header("Story Dialog")]
+    public Sprite storyIllustration; // Ảnh minh họa cốt truyện (nếu có)
+    [TextArea(3, 5)]
+    public string storyText;         // Đoạn text cốt truyện tương ứng mốc này
     [Header("Sprite Platform của Level này")]
     [Tooltip("Các hình ảnh bục xuất hiện trong level này")]
     public Sprite[] platformSprites;
