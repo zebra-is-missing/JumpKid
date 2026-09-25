@@ -24,11 +24,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button faceIdButton;
     [SerializeField] private Image currentCharacterImage;
     public Image popupCharacterImage;
-    public GameObject popupLevelUp;
+    public GameObject popupLevelUp; 
 
     [Header("Cấu hình Level")]
     public int stepsPerLevel = 1;
     public List<LevelSkin> levels = new List<LevelSkin>();
+
+    [Header("UI Cốt Truyện (Visual Novel)")]
+    public GameObject storyPanel;
+    public Image storyBgImage;
+    public Image storyBgFadeImage;
+    public TextMeshProUGUI storyText;
+    public Button storyClickArea; // Nút bấm toàn màn hình để click qua câu
 
     private int currentScore = 0;
     private int currentLevelIndex = -1;
@@ -143,27 +150,38 @@ public class UIManager : MonoBehaviour
         int targetIndex = currentScore / stepsPerLevel;
         targetIndex = Mathf.Clamp(targetIndex, 0, levels.Count - 1);
 
-        // 1. Khi vừa vào game (Start), khởi tạo skin ban đầu mà không mở popup
+        // 1. Khi vừa vào game (Start), khởi tạo skin ban đầu cho nhân vật & FaceID mà không mở popup
         if (currentLevelIndex == -1)
         {
             currentLevelIndex = targetIndex;
-            ApplyLevelSkin(levels[currentLevelIndex]);
+            UpdateFaceID(levels[currentLevelIndex]);
+
+            if (PlayerController.Instance != null)
+            {
+                LevelSkin initialSkin = levels[currentLevelIndex];
+                PlayerController.Instance.UpdateSkin(initialSkin.characterIdle, initialSkin.characterJump, initialSkin.characterLand);
+            }
             return;
         }
 
-        // 2. Chỉ kích hoạt Popup và áp dụng Skin mới khi ĐẠT ĐỦ ĐIỂM LÊN LEVEL MỚI
+        // 2. Chỉ kích hoạt khi ĐẠT ĐỦ ĐIỂM LÊN LEVEL MỚI
         if (targetIndex > currentLevelIndex)
         {
-            int oldIndex = currentLevelIndex;
+            int oldIndex = currentLevelIndex; // Khai báo oldIndex ở đây
             currentLevelIndex = targetIndex;
 
-            // Gọi hiển thị popup thăng cấp chuyển từ skin cũ sang skin mới
+            // Gọi PopUpManager (chạy Story -> Đổi Skin -> Fade out -> cập nhật FaceID)
             if (popUpManager != null)
             {
                 popUpManager.ShowLevelUpPopUp(levels[oldIndex], levels[currentLevelIndex]);
             }
 
-            ApplyLevelSkin(levels[currentLevelIndex]);
+            // Cập nhật skin nhân vật nhảy/đứng trong game
+            if (PlayerController.Instance != null)
+            {
+                LevelSkin newSkin = levels[currentLevelIndex];
+                PlayerController.Instance.UpdateSkin(newSkin.characterIdle, newSkin.characterJump, newSkin.characterLand);
+            }
         }
     }
 
@@ -172,23 +190,12 @@ public class UIManager : MonoBehaviour
         if (faceIdImage == null) return;
         faceIdImage.transform.DOScale(1.2f, 0.2f).SetLoops(2, LoopType.Yoyo);
     }
-
-    private void ApplyLevelSkin(LevelSkin skin)
+    public void UpdateFaceID(LevelSkin skin)
     {
-        if (faceIdImage != null)
+        if (faceIdImage != null && skin != null)
         {
             faceIdImage.sprite = skin.faceIdSprite;
             AnimateFaceID();
-        }
-
-        if (currentCharacterImage != null)
-        {
-            currentCharacterImage.sprite = skin.popupSprite;
-        }
-
-        if (PlayerController.Instance != null)
-        {
-            PlayerController.Instance.UpdateSkin(skin.characterIdle, skin.characterJump, skin.characterLand);
         }
     }
 

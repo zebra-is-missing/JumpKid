@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a04ac6b3f33dad4fbc54889cad2bcf0, type: 3}
+  m_Name: StoryData_1
+  m_EditorClassIdentifier: Assembly-CSharp::StoryData
+  scenes:
+  - sceneImage: {fileID: 1413876465709611863, guid: de3e02577a26b2a468fefd1129980ae3, type: 3}
+    dialogues:
+    - "M\xECnh l\xE0... M\xECnh kh\xF4ng bi\u1EBFt."
+    - " M\xECnh kh\xF4ng c\xF3 t\xEAn."
+    - "M\xECnh s\u1ED1ng v\u1EDBi b\u1ED1, nh\u01B0ng m\xECnh c\u0169ng ch\u1EB3ng
+      hay th\u1EA5y b\u1ED1 \u1EDF nh\xE0."
+    - "M\xECnh lu\xF4n th\u1EA5y \u0111\xF3i, ch\u1EC9 l\xFAc n\xE0o b\u1ED1 v\u1EC1,
+      m\xECnh m\u1EDBi \u0111\u01B0\u1EE3c \u0103n g\xEC \u0111\xF3."
+  - sceneImage: {fileID: -3909925754258287521, guid: 11469168ce242cc4b9b79393e8e19592, type: 3}
+    dialogues:
+    - "M\u1ED9t ng\xE0y b\u1ED1 kh\xF4ng \u1EDF nh\xE0, m\u1ED9t ng\u01B0\u1EDDi
+      t\u1EF1 x\u01B0ng l\xE0 d\xEC c\u1EE7a m\xECnh, \u0111\xE3 \u0111\u1EBFn \u0111\u01B0a
+      m\xECnh \u0111i."
+    - "\"D\xEC \u01A1i, con \u0111au. D\xEC \u0111i ch\u1EADm l\u1EA1i ch\xFAt \u0111i,
+      con kh\xF4ng theo k\u1ECBp.\""
+    - "D\xEC \u0111\u01B0a m\xECnh \u0111\u1EBFn g\u1EB7p m\u1EB9."
+    - "M\u1EB9 \u0111\xE3 kh\xF3c r\u1EA5t nhi\u1EC1u khi th\u1EA5y m\xECnh."
+  - sceneImage: {fileID: -4784183127824495450, guid: 0d172de02c7d0574f92ad50045d06461, type: 3}
+    dialogues:
+    - 

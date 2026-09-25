@@ -18,4 +18,7 @@ public class LevelSkin
     [Header("Sprite Platform của Level này")]
     [Tooltip("Các hình ảnh bục xuất hiện trong level này")]
     public Sprite[] platformSprites;
+
+    [Header("Dữ Liệu Cốt Truyện Riêng")]
+    public StoryData storyData;
 }
